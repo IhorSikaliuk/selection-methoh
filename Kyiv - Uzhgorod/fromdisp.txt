@@ -1,0 +1,8 @@
+1 Kyiv Lviv 16:30 5:09 365
+2 Kyiv Odessa 12:22 7:15 330
+3 Kyiv Kovel 9:48 10:10 300
+4 Kyiv Przemysl 6:20 7:25 542
+5 Kyiv Przemysl 10:04 9:08 588
+6 Kyiv Kharkiv 6:45 4:57 298
+7 Kyiv Lviv 12:30 5:09 365
+8 Kyiv Kovel 20:08 10:10 300

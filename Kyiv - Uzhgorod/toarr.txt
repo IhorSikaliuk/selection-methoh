@@ -1,0 +1,8 @@
+1 Zaporizhia Uzhgorod 18:12 20:26 900
+2 Zaporizhia Uzhgorod 12:12 20:26 900
+3 Lviv Uzhgorod 17:10 5:48 69
+4 Lviv Uzhgorod 20:20 5:30 122
+5 Kharkiv Uzhgorod 10:00 19:20 1018
+6 Odessa Uzhgorod 10:10 19:20 256
+7 Odessa Uzhgorod 34:50 19:20 256
+8 Kharkiv Uzhgorod 40:20 19:20 870

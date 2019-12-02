@@ -1,0 +1,9 @@
+1 Dnipro Kostiantynivka 6:57 5:14 132
+2 Dnipro Lysychansk 7:03 12:47 210
+3 Dnipro Lysychansk 17:33 12:47 210
+4 Dnipro Odessa 15:13 11:10 160
+5 Dnipro Odessa 18:25 11:10 175
+6 Dnipro Lviv 13:28 14:12 316
+7 Dnipro Kyiv 9:55 5:45 315
+8 Dnipro Kyiv 16:35 5:45 315
+9 Dnipro Kyiv 15:00 6:32 300

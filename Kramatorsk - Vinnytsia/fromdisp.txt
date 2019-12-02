@@ -1,0 +1,5 @@
+1 Kramatorsk Odessa 12:42 16:41 190
+2 Kramatorsk Kyiv 16:41 6:24 350
+3 Kramatorsk Kyiv 18:16 14:17 170
+4 Kramatorsk Ivano-Frankivsk 17:16 19:52 850
+5 Kramatorsk Kyiv 10:00 6:24 350

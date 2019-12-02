@@ -1,0 +1,7 @@
+1 Lviv Vinnytsia 20:00 7:07 145
+2 Lviv Vinnytsia 35:40 7:03 145
+3 Odessa Vinnytsia 18:00 6:52 195
+4 Kharkiv Vinnytsia 20:09 12:32 230
+5 Dnipro Vinnytsia 38:00 11:00 205
+6 Mariupol Vinnytsia 22:50 11:38 160
+7 Sumy Vinnytsia 29:35 7:36 310
