@@ -14,7 +14,11 @@ def HtoM(H):
 
 def MtoH(M):
 	h = str(M//60)
+	if(len(h) == 1):
+		h = "0" + h
 	m = str(M%60)
+	if(len(m) == 1):
+		m = "0" + m
 	return(h + ':' + m)
 
 def type1toList(From, To): #функції занесення даних із стрічок по файлу у списки та їх форматування
@@ -180,11 +184,14 @@ def create_config(path): #створення конфіг-файлу
 	config.add_section("Settings")
 	config.set("Input", "dispatch", "")
 	config.set("Input", "arrive", "")
+	config.set("Settings", "time_search", "1")
+	config.set("Settings", "price_search", "1")
+	config.set("Settings", "optimality_search", "1")
 	config.set("Settings", "price_increase", "1.2")
 	config.set("Settings", "min_wait_time", "10")
 	config.set("Settings", "coefficient_station_filtration_time", "2")
 	config.set("Settings", "coefficient_station_filtration_price", "2")
-	config.set("Settings", "coefficient_result_filtration_time", "1.5")
+	config.set("Settings", "coefficient_result_filtration_time", "1.4")
 	config.set("Settings", "coefficient_result_filtration_price", "1.5")
 	with open(path, "w") as config_file:
 		config.write(config_file)
@@ -211,6 +218,21 @@ if __name__ == "__main__": #читання конфіг-файлу
 		exit()
 	disp = get_setting(path, 'Input', 'dispatch')
 	arr = get_setting(path, 'Input', 'arrive')
+	timeFlag = float(get_setting(path, "Settings", "time_search")) #виконання пошуку за часом
+	if (timeFlag == 1):
+		timeFlag = True
+	else:
+		timeFlag = False
+	priceFlag = int(get_setting(path, "Settings", "price_search")) #виконання пошуку за ціною
+	if (priceFlag == 1):
+		priceFlag = True
+	else:
+		priceFlag = False
+	optimalityFlag = float(get_setting(path, "Settings", "optimality_search")) #виконання пошуку за обома параметрами
+	if (optimalityFlag == 1):
+		optimalityFlag = True
+	else:
+		optimalityFlag = False
 	pricecoef = float(get_setting(path, "Settings", "price_increase")) #коефіцієнт збільшення ціни
 	waitingTime = int(get_setting(path, "Settings", "min_wait_time")) #мінімальний час очікування на пересадочній станції
 	coefFTM = float(get_setting(path, "Settings", "coefficient_station_filtration_time")) #коефіцієнт фільтрації тривалості маршруту від найшвидшого для відбору станцій пересадки
@@ -273,42 +295,49 @@ for l in astopsl:
 print(dispMatrixList, DN)
 print(arrMatrixList, AN)
 
-dispMatrixTime = createMatrix(DN) #створення і заповнення матриць суміжностей
-arrMatrixTime = createMatrix(AN)
-dispMatrixPrice = createMatrix(DN)
-arrMatrixPrice = createMatrix(AN)
-
-fillMatrixTime(fdispl, dstopsl, dispMatrixList, dispMatrixTime)
-fillMatrixTime(tarrl, astopsl, arrMatrixList, arrMatrixTime)
-fillMatrixPrice(fdispl, dstopsl, dispMatrixList, dispMatrixPrice)
-fillMatrixPrice(tarrl, astopsl, arrMatrixList, arrMatrixPrice)
+if (timeFlag or optimalityFlag):
+	dispMatrixTime = createMatrix(DN) #створення і заповнення матриць суміжностей
+	arrMatrixTime = createMatrix(AN)
+	fillMatrixTime(fdispl, dstopsl, dispMatrixList, dispMatrixTime)
+	fillMatrixTime(tarrl, astopsl, arrMatrixList, arrMatrixTime)
+if (priceFlag):
+	dispMatrixPrice = createMatrix(DN)
+	arrMatrixPrice = createMatrix(AN)
+	fillMatrixPrice(fdispl, dstopsl, dispMatrixList, dispMatrixPrice)
+	fillMatrixPrice(tarrl, astopsl, arrMatrixList, arrMatrixPrice)
 
 print()
 print(dispMatrixList, DN)
-printList(dispMatrixTime, 'Time:')
-printList(dispMatrixPrice, 'Price:')
+if (timeFlag or optimalityFlag):
+	printList(dispMatrixTime, 'Time:')
+if (priceFlag):
+	printList(dispMatrixPrice, 'Price:')
 print()
 print(arrMatrixList, AN)
-printList(arrMatrixTime, 'Time:')
-printList(arrMatrixPrice, 'Price:')
+if (timeFlag or optimalityFlag):
+	printList(arrMatrixTime, 'Time:')
+if (priceFlag):
+	printList(arrMatrixPrice, 'Price:')
 
 
-weightDispTime = Dijkstra(DN, 0, dispMatrixTime) #виконання алгоритму Дейкстри
-weightArrTime = Dijkstra(AN, 0, arrMatrixTime)
-weightDispPrice = Dijkstra(DN, 0, dispMatrixPrice)
-weightArrPrice = Dijkstra(AN, 0, arrMatrixPrice)
-dispMatrixTime.clear()
-arrMatrixTime.clear()
-dispMatrixPrice.clear()
-arrMatrixPrice.clear()
-del(dispMatrixTime)
-del(arrMatrixTime)
-del(dispMatrixPrice)
-del(arrMatrixPrice)
-for i in range(DN):
-	weightDispTime[i] = MtoH(weightDispTime[i])
-for i in range(AN):
-	weightArrTime[i] = MtoH(weightArrTime[i])
+if (timeFlag or optimalityFlag):
+	weightDispTime = Dijkstra(DN, 0, dispMatrixTime) #виконання алгоритму Дейкстри
+	weightArrTime = Dijkstra(AN, 0, arrMatrixTime)
+	dispMatrixTime.clear()
+	arrMatrixTime.clear()
+	del(dispMatrixTime)
+	del(arrMatrixTime)
+	for i in range(DN):
+		weightDispTime[i] = MtoH(weightDispTime[i])
+	for i in range(AN):
+		weightArrTime[i] = MtoH(weightArrTime[i])
+if (priceFlag):
+	weightDispPrice = Dijkstra(DN, 0, dispMatrixPrice)
+	weightArrPrice = Dijkstra(AN, 0, arrMatrixPrice)
+	dispMatrixPrice.clear()
+	arrMatrixPrice.clear()
+	del(dispMatrixPrice)
+	del(arrMatrixPrice)
 
 intersections = dispMatrixList.copy() #створення списку пунктів пересадки
 Itrc = DN
@@ -319,90 +348,131 @@ for c in range(-DN, 0):
 
 print()
 print(dispMatrixList, DN)
-print(weightDispTime, 'by time')
-print(weightDispPrice, 'by price')
+if (timeFlag or optimalityFlag):
+	print(weightDispTime, 'by time')
+if (priceFlag):
+	print(weightDispPrice, 'by price')
 print()
 print(arrMatrixList, AN)
-print(weightArrTime, 'by time')
-print(weightArrPrice, 'by price')
+if (timeFlag or optimalityFlag):
+	print(weightArrTime, 'by time')
+if (priceFlag):
+	print(weightArrPrice, 'by price')
 print()
 print(intersections, 'intersections')
 
-weighItrcTime = []*0
-weighItrcPrice = []*0
-for s in intersections:
-	weighItrcTime.append( HtoM(weightDispTime[dispMatrixList.index(s)]) + HtoM(weightArrTime[arrMatrixList.index(s)]) )
-for s in intersections:
-	weighItrcPrice.append(weightDispPrice[dispMatrixList.index(s)] + weightArrPrice[arrMatrixList.index(s)])
+if (timeFlag or optimalityFlag):
+	weighItrcTime = []*0
+	for s in intersections:
+		weighItrcTime.append( HtoM(weightDispTime[dispMatrixList.index(s)]) + HtoM(weightArrTime[arrMatrixList.index(s)]) )
+	intersectionsT = intersections.copy() #фільтрація пунктів пересадки за коефіцієнтами для кожного з методів пошуку
+	min = 1000000
+	for i in weighItrcTime:
+		if i < min:
+			min = i
+	for c in range(-Itrc, 0):
+		if weighItrcTime[c] > min*coefFTM:
+			weighItrcTime.pop(c)
+			intersectionsT.pop(c)
+			print()
+	print(intersectionsT)
+	print(weighItrcTime, 'time')
+if (priceFlag):
+	weighItrcPrice = []*0
+	for s in intersections:
+		weighItrcPrice.append(weightDispPrice[dispMatrixList.index(s)] + weightArrPrice[arrMatrixList.index(s)])
+	intersectionsP = intersections.copy()
+	min = 1000000
+	for i in weighItrcPrice:
+		if i < min:
+			min = i
+	for c in range(-Itrc, 0):
+		if weighItrcPrice[c] > min*coefFPM:
+			weighItrcPrice.pop(c)
+			intersectionsP.pop(c)
+	print()
+	print(intersectionsP)
+	print(weighItrcPrice, 'price')
 
-intersectionsT = intersections.copy() #фільтрація пунктів пересадки за коефіцієнтами для кожного з методів пошуку
-intersectionsP = intersections.copy()
-min = 1000000
-for i in weighItrcTime:
-	if i < min:
-		min = i
-for c in range(-Itrc, 0):
-	if weighItrcTime[c] > min*coefFTM:
-		weighItrcTime.pop(c)
-		intersectionsT.pop(c)
-min = 1000000
-for i in weighItrcPrice:
-	if i < min:
-		min = i
-for c in range(-Itrc, 0):
-	if weighItrcPrice[c] > min*coefFPM:
-		weighItrcPrice.pop(c)
-		intersectionsP.pop(c)
+if (timeFlag or optimalityFlag):
+	variantsTime = createVariants(intersectionsT)
+	print()
+	printList(variantsTime)
+if (priceFlag):
+	variantsPrice = createVariants(intersectionsP)
+	print()
+	printList(variantsPrice)
+if (optimalityFlag):
+	variantsOptimality = []*0
+	for l in variantsTime:
+		variantsOptimality.append(l.copy())
 
-print()
-print(intersectionsT)
-print(weighItrcTime, 'time')
-print()
-print(intersectionsP)
-print(weighItrcPrice, 'price')
+if (timeFlag):
+	variantsTime.sort(key=sortbyPrice)
+	variantsTime.sort(key=sortbyTime)
+	counter = 0 #видалення найменш вигідних варіантів
+	minTime = variantsTime[0][8] - variantsTime[0][5]
+	for l in variantsTime:
+		if (l[8] - l[5]) > minTime*coefFTF:
+			variantsTime = variantsTime[0:counter]
+			break
+		l[5] = MtoH(l[5])
+		l[6] = MtoH(l[6])
+		l[7] = MtoH(l[7])
+		l[8] = MtoH(l[8])
+		counter += 1
+	print()
+	printList(variantsTime)
 
-variantsTime = createVariants(intersectionsT)
-variantsPrice = createVariants(intersectionsP)
+if (priceFlag):
+	variantsPrice.sort(key=sortbyTime)
+	variantsPrice.sort(key=sortbyPrice)
+	counter = 0
+	minPrice = variantsPrice[0][9] + variantsPrice[0][10]
+	for l in variantsPrice:
+		if (l[9] + l[10]) > minPrice*coefFPF:
+			variantsPrice = variantsPrice[0:counter]
+			break
+		l[5] = MtoH(l[5])
+		l[6] = MtoH(l[6])
+		l[7] = MtoH(l[7])
+		l[8] = MtoH(l[8])
+		counter += 1
+	print()
+	printList(variantsPrice)
 
-print()
-printList(variantsTime)
-print()
-printList(variantsPrice)
+if (optimalityFlag):
+	variantsOptimality.sort(key=sortbyTime)
+	counter = 0
+	minTime = variantsOptimality[0][8] - variantsOptimality[0][5]
+	for l in variantsOptimality:
+		if (l[8] - l[5]) > minTime*coefFTF:
+			variantsOptimality = variantsOptimality[0:counter]
+			break
+		counter += 1
+	variantsOptimality.sort(key=sortbyPrice)
+	counter = 0
+	minPrice = variantsOptimality[0][9] + variantsOptimality[0][10]
+	for l in variantsOptimality:
+		if (l[9] + l[10]) > minPrice*coefFPF:
+			variantsOptimality = variantsOptimality[0:counter]
+			break
+		l[5] = MtoH(l[5])
+		l[6] = MtoH(l[6])
+		l[7] = MtoH(l[7])
+		l[8] = MtoH(l[8])
+		counter += 1
+	print()
+	printList(variantsOptimality)
 
-variantsTime.sort(key=sortbyPrice)
-variantsTime.sort(key=sortbyTime)
-variantsPrice.sort(key=sortbyTime)
-variantsPrice.sort(key=sortbyPrice)
-counter = 0 #видалення найменш вигідних варіантів
-minTime = variantsTime[0][8] - variantsTime[0][5]
-for l in variantsTime:
-	if (l[8] - l[5]) > minTime*coefFTF:
-		variantsTime = variantsTime[0:counter]
-		break
-	l[5] = MtoH(l[5])
-	l[6] = MtoH(l[6])
-	l[7] = MtoH(l[7])
-	l[8] = MtoH(l[8])
-	counter += 1
-counter = 0
-minPrice = variantsPrice[0][9] + variantsPrice[0][10]
-for l in variantsPrice:
-	if (l[9] + l[10]) > minPrice*coefFPF:
-		variantsPrice = variantsPrice[0:counter]
-		break
-	l[5] = MtoH(l[5])
-	l[6] = MtoH(l[6])
-	l[7] = MtoH(l[7])
-	l[8] = MtoH(l[8])
-	counter += 1
-
-print()
-printList(variantsTime)
-print()
-printList(variantsPrice)
-print()
-result('time', variantsTime)
-print()
-result('price', variantsPrice)
+if (timeFlag):
+	print()
+	result('time', variantsTime)
+if (priceFlag):
+	print()
+	result('price', variantsPrice)
+if (optimalityFlag):
+	print()
+	result('optimality', variantsOptimality)
 
 input()
